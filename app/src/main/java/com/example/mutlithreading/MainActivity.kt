@@ -1,38 +1,53 @@
 package com.example.mutlithreading
 
+import android.os.AsyncTask
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import java.lang.Exception
+import com.example.mutlithreading.databinding.ActivityMainBinding
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        val thread1 = MyThread()
-        val thread2 = MyThread()
-        val thread3 = MyThread()
-        thread1.start()
-        thread2.start()
-        thread3.start()
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        val task = MyAsyncTask()
+        binding.tvTest.setOnClickListener {
+            task.execute()
+        }
+        binding.btnCancel.setOnClickListener {
+            task.cancel(false)
+        }
     }
 
-    class MyRunnable:Runnable{
+    inner class MyAsyncTask : AsyncTask<Void, Void, Void>() {
 
-        override fun run() {
-            Log.d("TESTTAG", "Hello from ${Thread.currentThread().name}")
+        override fun onPreExecute() {
+            super.onPreExecute()
+            Log.d("TESTTAG", "Started")
+            binding.tvTest.text = "Started"
         }
 
-    }
-
-    class MyThread : Thread() {
-
-        override fun run() {
-            super.run()
-            for (i in 0..4){
-                sleep(500)
-                Log.d("TESTTAG", "I = $i")
+        override fun doInBackground(vararg params: Void?): Void? {
+            for (i in 0..5){
+                if (isCancelled) return null
+                TimeUnit.SECONDS.sleep(1)
+                Log.d("TESTTAG", "isCanceled = $isCancelled")
             }
+            return null
         }
+
+        override fun onPostExecute(result: Void?) {
+            super.onPostExecute(result)
+            Log.d("TESTTAG", "onPostExecute")
+            binding.tvTest.text = "Ended"
+        }
+
     }
+
 }
